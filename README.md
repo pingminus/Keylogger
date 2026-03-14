@@ -21,6 +21,6 @@ Open the source code and replace the placeholder with your Discord webhook URL:
 ![image](https://github.com/user-attachments/assets/d1b9786a-6f89-4edc-bc97-9c3da54a477a)
 ###  compile
 ```bash
-g++ Sources.cpp main.cpp -o main
+g++ Source.cpp -o main
 main
 
